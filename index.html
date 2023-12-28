@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Whowhere</title>
+	<link rel="stylesheet" type="text/css" href="styled.css">
+	<link href="https://fonts.googleapis.com/css2?family=Inter&family=Lato&display=swap" rel="stylesheet">
+</head>
+	<link rel="shortcut icon" type="image/png" href="/botsitesi/ryzex.png"/>
+<body>
+	<header>
+		<h2>Kim hangi odada</h2http://archiecode.wuaze.com/?i=1
+http://archiecode.wuaze.com/http://archiecode.wuaze.com/http://archiecode.wuaze.com/http://archiecode.wuaze.com/	</header>
+	<p>Aktif odalar</p>
+	<select id="lg" onchange="f(this.value)">
+		<option value="23"></option>
+		<option value="8">Türkçe</option>
+		<option value="2">English</option>
+		<option value="7">Русский</option>
+		<option value="55">Bahasa Melayu</option>
+		<option value="30">Català</option>
+		<option value="31">Dansk</option>
+		<option value="33">Eesti</option>
+		<option value="67">Esperanto</option>
+		<option value="36">Føroyskt</option>
+		<option value="37">Gaeilge</option>
+		<option value="38">Galego</option> 
+		<option value="43">Hrvatski</option> 
+		<option value="46">Íslenska</option>
+		<option value="66">Kurdî</option>
+		<option value="52">Latviešu</option>
+		<option value="50">Lëtzebuergesch</option>
+		<option value="68">Lietuvių</option>
+		<option value="56">Malti</option>
+		<option value="53">Mакедонски</option>
+		<option value="65">Norsk</option>
+		<option value="61">Shqip</option>
+		<option value="59">Slovenščina</option> 
+		<option value="35">Suomi</option>
+		<option value="24">Svenska</option>
+		<option value="62">Türkmen</option> 
+		<option value="64">Yorùbá</option>
+		<option value="32">Ελληνικά</option>
+		<option value="27">Беларуская</option> 
+		<option value="29">Босански</option>
+		<option value="54">Монгол Хэл</option>
+		<option value="60">Српски</option>
+		<option value="63">Українська</option> 
+		<option value="49">Қазақ Tілі</option> 
+		<option value="42">Հայերեն</option> 
+		<option value="41">हिन्दी</option>
+		<option value="28">বাংলা</option>
+		<option value="39">ગુજરાતી</option>
+		<option value="51">ພາສາລາວ</option> 
+		<option value="57">မြန်မာစကား</option>
+		<option value="47">ქართული</option>
+		<option value="25">ኣማርኛ</option>
+		<option value="48">ភាសាខ្មែរ</option>
+	</select>
+	<div class="flex"></div>
+	<footer>
+		<p>Ryzex / this site was created by Ryzex</p>
+	</footer>
+<script>
+	// by Ryzex, in 2031
+	const fl = document.querySelector('.flex');
+
+	let roomIds = [];
+
+	function f(lang){
+		fetch('https://gartic.io/req/list?search=&language[]=' + lang)
+		.then(res => res.json())
+		.then(data => {
+			const active = data.filter(room => room.quant > 0);
+			if(active.length != 0){
+				fl.innerHTML = '';
+				for (let k = 0; k < active.length; k++){
+					roomIds.push(active[k].id);
+
+					const flc = document.createElement('div');
+					flc.classList.add('flex-child');
+					fl.appendChild(flc);
+
+					const roomTag = document.createElement('h3');
+					const roomSubjIcon = document.createElement('img');
+					const inRoomPlayers = document.createElement('p');
+					const users = document.createElement('div');
+					const viewBtn = document.createElement('a');
+
+					users.classList.add('users');
+
+					roomTag.innerHTML = active[k].id.slice(1);
+					roomSubjIcon.src = `https://gartic.io/static/images/subjects/${active[k].subject}.svg`;
+					inRoomPlayers.innerHTML = `${active[k].quant} / ${active[k].max} ・ ${active[k].points} / ${active[k].goal}`;
+					viewBtn.href = `https://gartic.io/${active[k].code}/viewer`;
+					viewBtn.innerHTML = 'Viewer için tikla';
+					viewBtn.target = '_blank';
+
+					fetch(`https://gartic.io/serverViewer?room=${active[k].code}`).then(rs => rs.text()).then(dt => {
+						const s = dt.slice(15, 16);
+						const ws = new WebSocket(`wss://server0${s}.gartic.io/socket.io/?EIO=3&transport=websocket`);
+
+						ws.onopen = () => {
+							ws.send(`42[12,{"v":20000,"sala":"${roomIds[k]}"}]`);
+						}
+
+						ws.onmessage = (m) => {
+							try{
+								const d = JSON.parse(m.data.slice(2));
+								if(d[0] == 5){
+									for(let i = 0; i < d[5].length; i++){
+										const userB = document.createElement('div');
+										userB.classList.add('user-info');
+										users.appendChild(userB);
+
+										const userPp = document.createElement('img');
+										const userName = document.createElement('p');
+
+										userPp.src = d[5][i].foto ? d[5][i].foto : 'https://gartic.io/static/images/avatar/svg/0.svg';
+										userName.innerHTML = d[5][i].nick;
+
+										userB.append(userPp, userName);
+									}
+								}
+							}
+							catch(err) {
+
+							}
+						}
+					});
+
+					flc.append(roomTag, roomSubjIcon, inRoomPlayers, users, viewBtn);
+				}
+			} else fl.innerHTML = '<h2>There is no room in selected lang.</h2>'
+		});
+	}
+
+	f('23');
+</script>
+</body>
